@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .models import Post
+from .models import Post,Comment
 from django.contrib.auth.mixins import LoginRequiredMixin,UserPassesTestMixin
 from django.views.generic import (
             ListView,
@@ -8,6 +8,7 @@ from django.views.generic import (
             CreateView,
             UpdateView,
             DeleteView)
+# from .forms import *
 # Create your views here.
 def home(request):
     context={'posts':Post.objects.all()}
@@ -24,6 +25,7 @@ class PostListView(ListView):
 
 class PostDetailView(DetailView):
     model=Post
+
 
 class PostCreateView(LoginRequiredMixin,CreateView):
     model=Post
