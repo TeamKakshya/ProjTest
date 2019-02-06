@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from .forms import CommentForm
-from .models import Post,Comment
+from .models import Post,Comment,Event
 from django.contrib.auth.mixins import LoginRequiredMixin,UserPassesTestMixin
 from django.views.generic import (
             ListView,
@@ -79,6 +79,7 @@ class PostDeleteView(LoginRequiredMixin,UserPassesTestMixin,DeleteView):
             return True
         else:
             return False
+
 def post_list(request):
     post_list=Post.objects.all()
     paginator=Paginator(post_list,5)
@@ -138,3 +139,58 @@ def gallery(request):
 
     }
     return render(request,'blog/gallery.html',context)
+
+class EventCreateView(LoginRequiredMixin,CreateView):
+    model=Event
+    fields=['title','content','event_date']
+
+    def form_valid(self,form):
+        form.instance.author=self.request.user
+        messages.success(self.request,f'You have created a new event!')
+        return super().form_valid(form)
+
+def event_list(request):
+    events=Event.objects.all()
+
+    context={
+        'events':events,
+
+    }
+    return render(request,'blog/events.html',context)
+
+def participate(request):
+    pk=request.POST.get('event_id')
+    event=get_object_or_404(Event,id=pk)
+    is_participating=False
+    if event.participate.filter(id=request.user.id).exists():
+        event.participate.remove(request.user)
+        is_participating=False
+    else:
+        event.participate.add(request.user)
+        is_participating=True
+    return HttpResponseRedirect(reverse('event-list'))
+
+class EventDeleteView(LoginRequiredMixin,UserPassesTestMixin,DeleteView):
+    model=Event
+    success_url="/"
+    def test_func(self):
+        event=self.get_object()
+        if(self.request.user==event.author):
+            return True
+        else:
+            return False
+class EventUpdateView(LoginRequiredMixin,UserPassesTestMixin,UpdateView):
+    model=Event
+    fields=['title','content','event_date',]
+
+    def form_valid(self,form):
+        form.instance.author=self.request.user
+        messages.success(self.request,f'You have edited the event!')
+        return super().form_valid(form)
+
+    def test_func(self):
+        event=self.get_object()
+        if(self.request.user==event.author):
+            return True
+        else:
+            return False
