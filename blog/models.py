@@ -48,3 +48,14 @@ class Event(models.Model):
 
     def get_absolute_url(self):
         return reverse('blog-home')
+
+class Notice(models.Model):
+    title=models.CharField(max_length=100)
+    author=models.ForeignKey(User,on_delete=models.CASCADE)
+    pub_date=models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering=['-pub_date',]
+
+    def get_absolute_url(self):
+        return reverse('blog-home')

@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from .forms import CommentForm
-from .models import Post,Comment,Event
+from .models import Post,Comment,Event,Notice
 from django.contrib.auth.mixins import LoginRequiredMixin,UserPassesTestMixin
 from django.views.generic import (
             ListView,
@@ -191,6 +191,50 @@ class EventUpdateView(LoginRequiredMixin,UserPassesTestMixin,UpdateView):
     def test_func(self):
         event=self.get_object()
         if(self.request.user==event.author):
+            return True
+        else:
+            return False
+
+def notice_list(request):
+    notices=Notice.objects.all()
+
+    context={
+        'notices':notices,
+
+    }
+    return render(request,'blog/notices.html',context)
+
+class NoticeCreateView(LoginRequiredMixin,CreateView):
+    model=Notice
+    fields=['title',]
+
+    def form_valid(self,form):
+        form.instance.author=self.request.user
+        messages.success(self.request,f'New notice created!')
+        return super().form_valid(form)
+
+class NoticeUpdateView(LoginRequiredMixin,UserPassesTestMixin,UpdateView):
+    model=Notice
+    fields=['title',]
+
+    def form_valid(self,form):
+        form.instance.author=self.request.user
+        messages.success(self.request,f'Notice Updated!')
+        return super().form_valid(form)
+
+    def test_func(self):
+        notice=self.get_object()
+        if(self.request.user==notice.author):
+            return True
+        else:
+            return False
+
+class NoticeDeleteView(LoginRequiredMixin,UserPassesTestMixin,DeleteView):
+    model=Notice
+    success_url="/"
+    def test_func(self):
+        notice=self.get_object()
+        if(self.request.user==notice.author):
             return True
         else:
             return False
