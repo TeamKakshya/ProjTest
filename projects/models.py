@@ -17,3 +17,6 @@ class Project(models.Model):
 
     def total_upvotes(self):
         return self.upvotes.count()
+
+    def get_absolute_url(self):
+        return reverse('project-list')
